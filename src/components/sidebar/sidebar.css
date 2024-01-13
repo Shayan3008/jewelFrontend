@@ -1,0 +1,16 @@
+
+  .list-item {
+    display: flex;
+    align-items: center;
+  }
+  
+  .list-item h4 {
+    margin: 0;
+    color: white;
+    font-size: 1em;
+  }
+  
+  
+  ul {
+      list-style: none;
+  }

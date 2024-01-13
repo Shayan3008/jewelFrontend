@@ -1,0 +1,34 @@
+.navbar {
+  height: 10vh;
+}
+
+.parent {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.child1 {
+  display: flex;
+  align-items: center;
+}
+
+.child2 {
+  display: flex;
+  align-items: center;
+}
+
+.child2 p {
+  padding: 0;
+  margin: 0;
+}
+
+.logo {
+  padding: 0.5rem;
+}
+
+.sideopen {
+  display: flex;
+  align-items: center;
+}

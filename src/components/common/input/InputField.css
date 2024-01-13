@@ -1,0 +1,41 @@
+/* InputField.css */
+.input-container {
+  position: relative;
+  margin: 1rem;
+  flex-basis: calc(30%);
+}
+
+.input-label {
+  position: absolute;
+  left: 15px;
+  top: 12px;
+  transition: top 0.3s, font-size 0.3s;
+  pointer-events: none;
+  color: #888;
+}
+
+input {
+  width: 100%;
+  padding: 1rem;
+  font-size: 16px;
+  border: 1px solid lightgray;
+  border-radius: 5px;
+  outline: none;
+  transition: all 1s ease;
+  box-shadow: 0 6px 10px 0 rgba(0, 0, 0, 0.1);
+}
+
+.validator{
+  border: 1px solid red;
+}
+
+.focused .input-label {
+  top: -20px;
+  font-size: 12px;
+  color: green;
+}
+
+.focused input {
+  border: 2px solid green;
+}
+

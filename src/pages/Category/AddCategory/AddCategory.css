@@ -1,0 +1,22 @@
+.formField {
+  background-color: white;
+  padding: 1rem;
+}
+
+.fields {
+  display: flex;
+  align-items: center;
+}
+
+.fieldName {
+  min-width: 15rem;
+  text-align: end;
+  padding: 0.8rem;
+}
+
+.fieldInput {
+  box-shadow: 0 6px 10px 0 rgba(0, 0, 0, 0.1);
+  border: 0;
+  outline: 0;
+  padding: 22px 20px;
+}
