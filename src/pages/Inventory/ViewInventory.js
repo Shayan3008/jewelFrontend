@@ -4,7 +4,9 @@ import ContentHeader from '../../components/contentHeader/ContentHeader'
 import DataTable from '../../components/common/table/DataTable'
 import { inventoryCols } from './InventoryCols'
 import { makeRequest } from '../../utils/HelperUtils'
-import ReactPaginate from 'react-paginate';
+import { Spinner } from 'react-bootstrap'
+import SearchFilter from '../../components/common/SearchFilter/SearchFilter'
+import Paginate from '../../components/common/Paginate/Paginate'
 
 
 export default function ViewInventory() {
@@ -13,6 +15,8 @@ export default function ViewInventory() {
     const navigate = useNavigate()
     const [data, setData] = useState([])
     const [updatedData, setUpdatedData] = useState([])
+    const [loading, setLoading] = useState(false)
+    const [search, setSearch] = useState("")
 
     const dataTransform = (dataForTable) => {
         const tempData = []
@@ -25,54 +29,49 @@ export default function ViewInventory() {
             data2.push(`data:image/jpeg;base64,${dataForTable[i].itemImage}`)
             tempData.push(data2)
         }
-        //console.log("final Data")
         return tempData
     }
 
-    useEffect(() => {
-        const fetchData = async () => {
-
-            const response = await makeRequest("GET", null, `/item?page=${currentPage}&size=5`)
-            if (response.statusCode === 200) {
-                console.log(response)
-                setUpdatedData(response.body)
-                setPageCount(response.size/5)
-                const transformedData = dataTransform(response.body)
-                setData(transformedData)
-            }
+    const fetchData = async () => {
+        setLoading(true)
+        let data = `page=${currentPage}&size=5`
+        if (search.length > 0) {
+            data = data + `&search=metalType.metalName=${search},karigar.karigarName=${search},category.categoryName=${search}`
         }
+        const response = await makeRequest("GET", null, `/item?${data}`)
+        if (response.statusCode === 200) {
+            setUpdatedData(response.body)
+            setPageCount(response.size / 5)
+            const transformedData = dataTransform(response.body)
+            setData(transformedData)
+        }
+        setLoading(false)
+    }
+
+    useEffect(() => {
+
 
         fetchData()
         // console.table(dataTransform(karigarData))
         // setData(dataTransform(karigarData))
     }, [currentPage])
-    return (
+    return loading === true ? <div style={{
+        height: '50vh',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'end'
+    }}> <Spinner /> </div> : (
         <>
 
             <ContentHeader titleName={"Inventory"} buttonName={"Add Inventory"} submitData={() => {
+                localStorage.removeItem("edit")
+                localStorage.removeItem("view")
                 navigate("/addinventory")
             }} />
+            <div style={{ height: '10px' }}></div>
+            <SearchFilter search={search} setSearch={setSearch} fetchData={fetchData} option={[]} />
             <DataTable setData={setData} col={inventoryCols} data={data} responseData={updatedData} url={"/item/delete"} navigate={navigate} path={"/addinventory"} />
-            <div>
-
-                <ReactPaginate
-                    breakLabel="..."
-                    nextLabel="next >"
-                    onPageChange={(e) => { console.log(e); setCurrentPage(e.selected) }}
-                    pageRangeDisplayed={5}
-                    pageCount={Math.ceil(pageCount)}
-                    previousLabel="< previous"
-                    renderOnZeroPageCount={null}
-                    containerClassName="pagination justify-content-center"
-                    pageClassName="page-item"
-                    pageLinkClassName="page-link"
-                    previousClassName="page-item"
-                    previousLinkClassName="page-link"
-                    nextClassName="page-item"
-                    nextLinkClassName="page-link"
-                    activeClassName="active"
-                />
-            </div>
+            <Paginate pageCount={pageCount} setPage={setCurrentPage} page={currentPage} />
         </>
     )
 }

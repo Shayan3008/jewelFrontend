@@ -1,18 +1,22 @@
 import React, { useEffect, useState } from 'react'
 import ContentHeader from '../../../components/contentHeader/ContentHeader'
-import { checkIfAnyFalse, getMessageFromAxiosError, makeRequest, setAllMembersToFalse } from '../../../utils/HelperUtils'
-import Select from 'react-dropdown-select';
+import { checkIfAnyFalse, downloadReport, getMessageFromAxiosError, makeRequest, setAllMembersToFalse, viewButton, viewOrEditHelper } from '../../../utils/HelperUtils'
 import '../../../components/common/CommonInput.css';
 import { useNavigate } from 'react-router';
 import ModalComponent from '../../../components/modal/ModalComponent';
 import Form from '../../../components/form/Form';
 import InputField from '../../../components/common/input/InputField';
 import SelectComponent from '../../../components/common/Select/SelectComponent';
+import { getMetalTypeLOVs } from '../../../common/dropdown/MetalType';
+import { useDispatch } from 'react-redux';
+import { showDialog } from '../../../store/Actions/MessageDialogAction';
 export default function AddCategory() {
     const [option, setOption] = useState([])
     const [modal, setModal] = useState(false)
     const [update, setUpdate] = useState(false)
+    const [view, setView] = useState(false)
     const navigate = useNavigate()
+    const dispatch = useDispatch()
 
     const handleModal = () => {
         //console.log(modal)
@@ -55,63 +59,111 @@ export default function AddCategory() {
             else {
                 response = await makeRequest("PUT", formData, "/category/update")
             }
-            alert(response.message)
-            navigate(-1)
+            dispatch(showDialog(true, response.message, false))
+            setTimeout(() => {
+                dispatch(showDialog(false, "", false))
+                navigate(-1)
+            }, 4000);
         } catch (error) {
-            alert(getMessageFromAxiosError(error))
+            dispatch(showDialog(true, getMessageFromAxiosError(error), true))
+            setTimeout(() => {
+                dispatch(showDialog(false, "", false))
+                navigate(-1)
+            }, 4000);
+        }
+    }
+    const fetchData = async () => {
+        const metalType = await getMetalTypeLOVs();
+        if (metalType != null) {
+            setOption(metalType)
+        }
+    }
+
+    const viewOrEdit = () => {
+        const categoryData = viewOrEditHelper(setView, setUpdate)
+        if (categoryData !== null && categoryData !== undefined) {
+            setFormData({
+                categoryId: categoryData.categoryCode,
+                categoryName: categoryData.categoryName,
+                metalName: categoryData.metalName
+            })
+
         }
     }
 
     useEffect(() => {
-        const fetchData = async () => {
-            //console.log("Hello")
-            const response = await makeRequest("GET", null, "/metalType")
-            //console.log(response.body.length)
-            if (response.statusCode === 200) {
-                const metalOptions = []
-                for (const element of response.body) {
-                    //console.log(response.body)
-                    const data = {}
-                    data.id = element.metalName;
-                    data.name = element.metalName
-                    metalOptions.push(data)
-                }
-                setOption(metalOptions)
-                //console.log(option)
-            }
-        }
-        const categoryData = JSON.parse(localStorage.getItem("update"))
-        if (categoryData !== null && categoryData !== undefined) {
-            setFormData({
-                categoryId: categoryData.categoryId,
-                categoryName: categoryData.categoryName,
-                metalName: categoryData.metalName
-            })
-            setUpdate(true)
-        }
-        fetchData()
 
-    }, [])
+
+        viewOrEdit()
+        if (option.length === 0)
+            fetchData()
+
+    }, [option.length])
+
+    const navigateBack = () => {
+        navigate(-1)
+    }
+
+    const generateReport = async () => {
+        try {
+            const response = await makeRequest("GET", null, "/report/detailedcategoryreport/" + formData.categoryId)
+            if (response.status === "Success") {
+                downloadReport(response, "pdf", "Detailed_Currency_Report")
+            }
+
+        } catch (error) {
+            console.log(error)
+        }
+    }
 
 
 
     return (
         <>
 
-            <ContentHeader titleName={"Add Category"} buttonName={update ? "Update" : "Submit"} submitData={handleModal} />
+            <ContentHeader multiOption={true} isView={viewButton()} titleName={`${view ? 'View' : 'Add'} Category`} buttonName={update ? "Update" : "Submit"} submitData={handleModal}
+                multiName={viewButton() ?
+                    [
+                        {
+                            name: "Back",
+                            method: navigateBack,
+                            color: 'red'
+                        },
+                        {
+                            name: "Generate Report",
+                            method: handleModal,
+                            color: ""
+                        }
+                    ] : [
+                        {
+                            name: "Back",
+                            method: navigateBack,
+                            color: 'red'
+                        },
+                        {
+                            name: update ? "Update" : "Submit",
+                            method: handleModal,
+                            color: '#25B491'
+                        }
+                    ]}
+            />
             <Form
                 title={"Category details"}
                 children={<>
 
                     <div style={{ display: 'flex', alignItems: 'center' }}>
 
-                        <SelectComponent validator={validator.metalName} data={formData.metalName} option={option} placeholder={"Please Enter Metal Type"} name={"metalName"} setFormData={setFormData} validationText={"Please Select Metal Type"} />
-                        <InputField labelName={"Category Name"} inputValue={formData.categoryName} setInputValue={setFormData} name={"categoryName"} validationText={"Category Name cannot be empty"} validator={validator.categoryName} />
+                        <SelectComponent disabled={view} validator={validator.metalName} data={formData.metalName} option={option} placeholder={"Please Enter Metal Type"} name={"metalName"} setFormData={setFormData} validationText={"Please Select Metal Type"} />
+                        <InputField disable={view} labelName={"Category Name"} inputValue={formData.categoryName} setInputValue={setFormData} name={"categoryName"} validationText={"Category Name cannot be empty"} validator={validator.categoryName} />
                     </div>
                     <div style={{ height: "10px" }}></div>
                 </>}
             />
-            <ModalComponent modal={modal} handleModal={handleModal} onSuccess={submitData} bodyText={`Are you sure you want to ${update ? "update" : "add"} category?`} />
+            <ModalComponent modal={modal} handleModal={handleModal} onSuccess={!view ? submitData : generateReport} bodyText={
+                !view ? `Are you sure you want to ${update ? "update" : "add"} category?` : 
+                `Do you want to generate detailed category Report?`} />
+
+            
         </>
     )
 }

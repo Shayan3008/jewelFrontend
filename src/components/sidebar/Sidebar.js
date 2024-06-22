@@ -1,4 +1,4 @@
-import  { useState } from 'react';
+import { useState } from 'react';
 import SidebarContent from './SidebarContent/SidebarContent';
 import './sidebar.css';
 export default function Sidebar(props) {
@@ -8,9 +8,9 @@ export default function Sidebar(props) {
         backgroundColor: "rgb(34,71,87)",
         height: "90%",
         transition: "all 0.5s",
-        overflow:"hidden",
-        position:"absolute",
-        zIndex:1
+        overflow: "hidden",
+        position: "absolute",
+        zIndex: 1
     };
     return (
 
@@ -19,7 +19,7 @@ export default function Sidebar(props) {
                 {menuName}
             </h2>
             <ul>
-                <SidebarContent setOpenSideBar = {props.setOpenSideBar} setMenuName={setMenuName} />
+                <SidebarContent setOpenSideBar={props.setOpenSideBar} setMenuName={setMenuName} />
             </ul>
         </div >
     )

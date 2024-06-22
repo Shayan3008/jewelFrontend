@@ -7,12 +7,11 @@ import Paginate from '../../../components/common/Paginate/Paginate';
 
 export default function ViewCategory() {
     const navigate = useNavigate()
-    const [data, setData] = useState([])
 
 
     const dataTransform = (dataForTable) => {
         const tempData = []
-        for (var i = 0; i < dataForTable.length; i++) {
+        for (let i = 0; i < dataForTable.length; i++) {
             const data2 = []
             data2.push(i + 1)
             data2.push(dataForTable[i].karigarName)

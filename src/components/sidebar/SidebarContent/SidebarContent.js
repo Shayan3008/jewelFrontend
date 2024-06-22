@@ -8,7 +8,7 @@ export default function SidebarContent(props) {
         return (<>
             {items.map((item, index) => (
                 <li key={index}>
-                    {item.child ? <ListItem item={item} renderList={renderList} /> :
+                    {item.child ? <><ListItem item={item} renderList={renderList} /><div style={{height:'10px'}}></div></> :
                         <Link to={item.url} onClick={() => {
                             props.setOpenSideBar(0)
                         }}>

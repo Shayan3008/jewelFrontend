@@ -12,7 +12,7 @@ export default function ModalComponent({ modal, handleModal, onSuccess, bodyText
             aria-labelledby="contained-modal-title-vcenter"
             centered show={modal} onHide={handleModal}>
             <Modal.Header closeButton>
-                <Modal.Title>{showLoader === true ? null : "Modal heading"}</Modal.Title>
+                <Modal.Title>{showLoader === true ? null : "Confirmation Modal"}</Modal.Title>
             </Modal.Header>
             <Modal.Body style={showLoader === true ? {
                 textAlign: 'center'

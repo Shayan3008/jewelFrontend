@@ -2,12 +2,12 @@ import React, { useState } from 'react'
 import Table from 'react-bootstrap/Table';
 
 import Button from 'react-bootstrap/Button'
-import { FaEdit } from "react-icons/fa";
+import { FaEdit, FaInfoCircle } from "react-icons/fa";
 import { AiFillDelete } from "react-icons/ai";
 import ModalComponent from '../../modal/ModalComponent';
 import { getMessageFromAxiosError, makeRequest } from '../../../utils/HelperUtils';
 
-export default function DataTable({ col, data, setData, responseData, navigate, path, url }) {
+export default function DataTable({ col, data, setData, responseData, navigate, path, url, name }) {
   const [id, setId] = useState("")
   const [index, setIndex] = useState(-1)
   const [modal, setModal] = useState(false);
@@ -18,7 +18,6 @@ export default function DataTable({ col, data, setData, responseData, navigate, 
   const deleteData = async () => {
     try {
       let response;
-      console.log(`${url}/${id}`)
       response = await makeRequest("Delete", null, `${url}/${id}`)
       const temp = [...data]
       temp.splice(index, 1)
@@ -36,7 +35,7 @@ export default function DataTable({ col, data, setData, responseData, navigate, 
             {col.map((data, index) => (
               <th key={index}>{data}</th>
             ))}
-            <th style={{ textAlign: 'center' }}>Actions</th>
+            {navigate === undefined ? null : <th style={{ textAlign: 'center' }}>Actions</th>}
           </tr>
         </thead>
         <tbody>
@@ -59,19 +58,30 @@ export default function DataTable({ col, data, setData, responseData, navigate, 
                 )
 
                 }
-                <td style={{ textAlign: 'center', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                {navigate === undefined ? null : <td style={{ textAlign: 'center', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                   <Button variant="success" onClick={() => {
-                    //console.log(responseData[index])
+                    localStorage.removeItem("update")
+                    localStorage.setItem("view", JSON.stringify(responseData[index]))
+                    navigate(path)
+                  }}><FaInfoCircle /></Button>
+                  <div style={{ width: "10px" }}></div>
+                  <Button variant="success" onClick={() => {
+                    localStorage.removeItem("view")
                     localStorage.setItem("update", JSON.stringify(responseData[index]))
                     navigate(path)
                   }}><FaEdit /></Button>
                   <div style={{ width: "10px" }}></div>
                   <Button variant="danger" onClick={() => {
-                    setId(responseData[index]["categoryCode"])
+                    if (name === undefined) {
+                      setId(responseData[index]["id"])
+                    }
+                    else {
+                      setId(responseData[index][name])
+                    }
                     setIndex(index)
                     handleModal()
                   }}><AiFillDelete /></Button>
-                </td>
+                </td>}
               </tr>
             ))
           }

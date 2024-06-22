@@ -17,4 +17,38 @@ const columns = [
     "metalName"
 ]
 
-export { dataForTable, columns }
+const goldPurity = [
+    {
+        id: "24K",
+        name: "24K"
+    }, {
+        id: "22K",
+        name: "22K"
+    }, {
+        id: "21K",
+        name: "21K"
+    }, {
+        id: "18K",
+        name: "18K"
+    }
+]
+
+const purchaseOption = [{
+    id: "Gold",
+    name: "Gold"
+}, {
+    id: "Cash",
+    name: "Cash"
+}]
+
+const trnType = [
+    {
+        id: "CREDIT",
+        name: "Credit"
+    }, {
+        id: "DEBIT",
+        name: "Debit"
+    }
+]
+
+export { dataForTable, columns, goldPurity, purchaseOption ,trnType}

@@ -3,12 +3,17 @@ import ContentHeader from '../../../components/contentHeader/ContentHeader'
 import Form from '../../../components/form/Form'
 import InputField from '../../../components/common/input/InputField'
 import ModalComponent from '../../../components/modal/ModalComponent'
-import { checkIfAnyFalse, getMessageFromAxiosError, makeRequest, setAllMembersToFalse } from '../../../utils/HelperUtils'
+import { checkIfAnyFalse, getMessageFromAxiosError, makeRequest, setAllMembersToFalse, viewButton, viewOrEditHelper } from '../../../utils/HelperUtils'
 import { useNavigate } from 'react-router'
+import { useDispatch } from 'react-redux'
+import { showDialog } from '../../../store/Actions/MessageDialogAction';
+
 
 export default function AddKarigar() {
     const [modal, setModal] = useState(false)
     const [update, setUpdate] = useState(false)
+    const [view, setView] = useState(false)
+    const dispatch = useDispatch()
     const navigate = useNavigate()
 
     const handleModal = () => {
@@ -47,36 +52,45 @@ export default function AddKarigar() {
                 response = await makeRequest("PUT", formData, "/karigar/update")
             }
             //console.log(response)
+            dispatch(showDialog(true, response.message, false))
             alert(response.message)
             navigate(-1)
         } catch (error) {
-            alert(getMessageFromAxiosError(error))
+            dispatch(showDialog(true, getMessageFromAxiosError(error), true))
         }
+        setTimeout(() => {
+                dispatch(showDialog(false, "", false))
+                navigate(-1)
+            }, 3000);
     }
 
-    useEffect(() => {
-        const karigarData = JSON.parse(localStorage.getItem("update"))
+    const viewOrEdit = () => {
+        let karigarData = viewOrEditHelper(setView, setUpdate)
         if (karigarData !== null && karigarData !== undefined) {
             setFormData({
                 id: karigarData.id,
                 karigarName: karigarData.karigarName,
                 description: karigarData.description
             })
-            setUpdate(true)
+
         }
+    }
+
+    useEffect(() => {
+        viewOrEdit()
     }, [])
 
 
     return (
         <>
-            <ContentHeader titleName={"Add Karigar"} buttonName={update ? "Update" : "Submit"} submitData={handleModal} />
+            <ContentHeader isView={viewButton()} titleName={"Add Karigar"} buttonName={update ? "Update" : "Submit"} submitData={handleModal} />
             <Form
                 title={"Karigar details"}
                 children={<>
 
                     <div style={{ display: 'flex' }}>
-                        <InputField labelName={"Karigar Name"} inputValue={formData.karigarName} setInputValue={setFormData} name={"karigarName"} validationText={"Karigar name cannot be empty"} validator={validator.karigarName} />
-                        <InputField labelName={"Karigar Description"} inputValue={formData.description} setInputValue={setFormData} name={"description"} />
+                        <InputField disable={view} labelName={"Karigar Name"} inputValue={formData.karigarName} setInputValue={setFormData} name={"karigarName"} validationText={"Karigar name cannot be empty"} validator={validator.karigarName} />
+                        <InputField disable={view} labelName={"Karigar Description"} inputValue={formData.description} setInputValue={setFormData} name={"description"} />
 
                     </div>
                     <div style={{ height: "10px" }}></div>

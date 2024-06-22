@@ -1,25 +1,38 @@
-import Sidebar from '../../components/sidebar/Sidebar'
+
 import DataTable from '../../components/common/table/DataTable';
-import { columns, dataForTable } from '../../constants/constantData';
+import { columns } from '../../constants/constantData';
 
 import ContentHeader from '../../components/contentHeader/ContentHeader';
 import 'react-dropdown/style.css';
 import './HomePage.css'
 import '../../utils/common.css'
 import { useNavigate } from 'react-router';
-import { makeRequest, navigateToPage } from '../../utils/HelperUtils';
+import { downloadReport, makeRequest } from '../../utils/HelperUtils';
 import { useEffect, useState } from 'react';
 import Paginate from '../../components/common/Paginate/Paginate';
+import { Spinner } from 'react-bootstrap';
+import SearchFilter from '../../components/common/SearchFilter/SearchFilter';
+import ModalComponent from '../../components/modal/ModalComponent';
 
-export default function HomePage(props) {
-    // TODO: Pick this from category metal api call.
+export default function HomePage() {
+    // eslint-disable-next-line
+    const [option, setOption] = useState([])
+    const [loading, setLoading] = useState(false)
     const [data, setData] = useState([])
     const [updatedData, setUpdatedData] = useState([])
     const [page, setPage] = useState(0)
     const [pageCount, setPageCount] = useState(0)
+    const [search, setSearch] = useState("")
+    const [modal, setModal] = useState(false)
+
+    const handleModal = () => {
+        setModal(e => !e)
+    }
+
+
     const dataTransform = (dataForTable) => {
         const tempData = []
-        for (var i = 0; i < dataForTable.length; i++) {
+        for (let i = 0; i < dataForTable.length; i++) {
             const data2 = []
             data2.push(i + 1)
             data2.push(dataForTable[i].categoryName)
@@ -29,31 +42,77 @@ export default function HomePage(props) {
         //console.log("final Data")
         return tempData
     }
+
+    const fetchData = async () => {
+        setLoading(true)
+        let data = ""
+        if (search.length > 0)
+            data = `page=${page}&size=5&search=${search}`
+        else
+            data = `page=${page}&size=5`
+        const response = await makeRequest("GET", null, `/category?${data}`)
+        if (response.statusCode === 200) {
+            setUpdatedData(response.body)
+            setPageCount(response.size / 5)
+            const transformedData = dataTransform(response.body)
+            setData(transformedData)
+        }
+        setLoading(false)
+    }
+
+
+    
     const navigate = useNavigate()
 
     useEffect(() => {
-        const fetchData = async () => {
 
-            const response = await makeRequest("GET", null, `/category?page=${page}&size=5`)
-            if (response.statusCode === 200) {
-                setUpdatedData(response.body)
-                setPageCount(response.size / 5)
-                const transformedData = dataTransform(response.body)
-                setData(transformedData)
-            }
-        }
 
         fetchData()
-    }, [])
+        // eslint-disable-next-line
+    }, [page])
 
-    return (
+    const generateReport = async () => {
+        try {
+            const response = await makeRequest("GET", null, "/report/categorycompletereport")
+            if (response.status === "Success") {
+                downloadReport(response, "pdf", "Detailed_Currency_Report")
+            }
+
+        } catch (error) {
+            console.log(error)
+        }
+    }
+
+    return loading === true ? <div style={{
+        height: '50vh',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'end'
+    }}> <Spinner /> </div> : (
         <div>
-            <ContentHeader titleName={"Category"} buttonName={"Add Category"} submitData={() => {
-                navigate("/addcategory")
-            }} />
-            <DataTable col={columns} data={data} responseData={updatedData} navigate={navigate} path={"/addcategory"} url={"/category/delete"} setData={setData}  />
-            <Paginate setPage={setPage} pageCount={pageCount} />
-        </div>
+            <ContentHeader multiOption={true} titleName={"Category"} multiName={
+                [
+                    {
+                        name: "Generate Report",
+                        method: handleModal,
+                        color: ""
+                    },
+                    {
+                        name: "Add Category",
+                        method: () => {
+                            localStorage.removeItem('update')
+                            navigate("/addcategory")
+                        },
+                        color: 'red'
+                    }
+                ]
+            } />
+            <SearchFilter fetchData={fetchData} search={search} setSearch={setSearch} option={option} />
+            <DataTable col={columns} data={data} responseData={updatedData} navigate={navigate} path={"/addcategory"} url={"/category/delete"} setData={setData} name={"categoryCode"} />
+            <Paginate setPage={setPage} pageCount={pageCount} page={page} />
+            <ModalComponent bodyText={"Want to generate detailed category report?"} handleModal={handleModal}
+                modal={modal} onSuccess={generateReport} />
+        </div >
 
     )
 }

@@ -1,4 +1,4 @@
-const apiUrl = "http://localhost:8080"
+const apiUrl = "http://82.180.145.63:8080"
 const headers = {
     "content-type": "application/json",
     "Access-Control-Allow-Origin": "*",

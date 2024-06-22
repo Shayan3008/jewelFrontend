@@ -1,7 +1,8 @@
 import React from 'react'
 import Select from 'react-dropdown-select'
+import "./SelectComponent.css"
 
-export default function SelectComponent({ validator, option, data, placeholder, setFormData, validationText, name,disabled }) {
+export default function SelectComponent({ validator, option, data, placeholder, setFormData, validationText, name, disabled }) {
     return (
         <div>
 
@@ -21,16 +22,32 @@ export default function SelectComponent({ validator, option, data, placeholder, 
                 options={option}
                 labelField="name"
                 valueField="id"
-                defaultValue={option.find(e => e.id === data)}
-                values={option.length > 0 && data ? [option.find(e => e.id === data)] : []}
+                values={option !== undefined && option.length > 0 && data ? [option.find(e => e.id === data)] : []}
+                searchable={true}
+                closeOnClickInput={true}
+                // create={true}
+                separator={true}
+                addPlaceholder={placeholder}
+                searchBy='name'
+                dropdownHeight='300px'
+                color="#0074D9"
+
                 onChange={(values) => {
-                    if(values.length === 0)
-                        return
-                    setFormData(data => ({
-                        ...data,
-                        [name]: values[0].id
-                    }))
-                }} />
+                    if (values !== undefined && values.length === 0) {
+                        setFormData(data => ({
+                            ...data,
+                            [name]: ''
+                        }));
+                    }
+                    else {
+                        setFormData(data => ({
+                            ...data,
+                            [name]: values[0].id
+                        }))
+                    }
+                }}
+                clearable={true}
+            />
             <p style={{
                 display: validator ? 'block' : `none`,
                 color: 'red',
