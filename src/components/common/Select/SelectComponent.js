@@ -2,7 +2,7 @@ import React from 'react'
 import Select from 'react-dropdown-select'
 import "./SelectComponent.css"
 
-export default function SelectComponent({ validator, option, data, placeholder, setFormData, validationText, name, disabled }) {
+export default function SelectComponent({ validator, option, data, placeholder, setFormData, validationText, name, disabled,setLoad }) {
     return (
         <div>
 
@@ -45,6 +45,8 @@ export default function SelectComponent({ validator, option, data, placeholder, 
                             [name]: values[0].id
                         }))
                     }
+                    if(setLoad !== null && setLoad !== undefined)
+                        setLoad(e=>!e)
                 }}
                 clearable={true}
             />

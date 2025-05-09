@@ -72,6 +72,7 @@ export default function DataTable({ col, data, setData, responseData, navigate, 
                   }}><FaEdit /></Button>
                   <div style={{ width: "10px" }}></div>
                   <Button variant="danger" onClick={() => {
+                    console.log(responseData)
                     if (name === undefined) {
                       setId(responseData[index]["id"])
                     }

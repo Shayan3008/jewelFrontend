@@ -17,6 +17,8 @@ export default function ViewInventory() {
     const [updatedData, setUpdatedData] = useState([])
     const [loading, setLoading] = useState(false)
     const [search, setSearch] = useState("")
+    
+  const [size,setSize] = useState(5)
 
     const dataTransform = (dataForTable) => {
         const tempData = []
@@ -34,14 +36,14 @@ export default function ViewInventory() {
 
     const fetchData = async () => {
         setLoading(true)
-        let data = `page=${currentPage}&size=5`
+        let data = `page=${currentPage}&size=${size}`
         if (search.length > 0) {
-            data = data + `&search=metalType.metalName=${search},karigar.karigarName=${search},category.categoryName=${search}`
+            data = data + `&search=metalType.metalName=${search},karigar.karigarName=${search},category.categoryName=${search},designNo=${search}`
         }
         const response = await makeRequest("GET", null, `/item?${data}`)
         if (response.statusCode === 200) {
             setUpdatedData(response.body)
-            setPageCount(response.size / 5)
+            setPageCount(response.size / size)
             const transformedData = dataTransform(response.body)
             setData(transformedData)
         }
@@ -52,9 +54,7 @@ export default function ViewInventory() {
 
 
         fetchData()
-        // console.table(dataTransform(karigarData))
-        // setData(dataTransform(karigarData))
-    }, [currentPage])
+    }, [currentPage,size])
     return loading === true ? <div style={{
         height: '50vh',
         display: 'flex',
@@ -71,7 +71,8 @@ export default function ViewInventory() {
             <div style={{ height: '10px' }}></div>
             <SearchFilter search={search} setSearch={setSearch} fetchData={fetchData} option={[]} />
             <DataTable setData={setData} col={inventoryCols} data={data} responseData={updatedData} url={"/item/delete"} navigate={navigate} path={"/addinventory"} />
-            <Paginate pageCount={pageCount} setPage={setCurrentPage} page={currentPage} />
+        <Paginate pageCount={pageCount} setPage={setCurrentPage} page={currentPage} 
+            size={size} setSize={setSize}/>
         </>
     )
 }

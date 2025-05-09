@@ -15,10 +15,8 @@ export default function Form({ title, children }) {
                 }}>{title}</h5>
                 <div>
                     {display === "0" ? <FaAngleDown size={25} color='white' onClick={() => {
-                        //console.log("Clicked on down icon")
                         setDisplay("auto")
                     }} /> : <FaAngleRight size={25} color='white' onClick={() => {
-                        //console.log("Clicked on right icon")
                         setDisplay("0")
                     }} />}
                 </div>

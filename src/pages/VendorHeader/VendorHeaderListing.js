@@ -63,7 +63,7 @@ export default function VendorHeaderListing() {
         alignItems: 'end'
     }}> <Spinner /> </div> : (
         <div>
-            <ContentHeader titleName={"Vendors"} buttonName={"Add Vendor"} submitData={() => {
+            <ContentHeader titleName={"Vendor Headers"} buttonName={"Add Vendor Header"} submitData={() => {
                 localStorage.removeItem('update')
                 navigate("/savevendorheader")
             }} />

@@ -16,6 +16,8 @@ export default function Karigar() {
     const [page, setPage] = useState(0);
     const [loading, setLoading] = useState(false)
     const [search, setSearch] = useState("")
+    
+  const [size,setSize] = useState(5)
     const dataTransform = (dataForTable) => {
         const tempData = []
         for (let i = 0; i < dataForTable.length; i++) {
@@ -32,16 +34,16 @@ export default function Karigar() {
         setLoading(true)
         let data = ""
         if (search.length > 0) {
-            data = `page=${page}&size=5&search=karigarName=${search}`
+            data = `page=${page}&size=${size}&search=karigarName=${search}`
         }
         else {
-            data = `page=${page}&size=5`
+            data = `page=${page}&size=${size}`
         }
         const response = await makeRequest("GET", null, `/karigar?${data}`)
         if (response.statusCode === 200) {
             setUpdatedData(response.body)
             const transformedData = dataTransform(response.body)
-            setPageCount(response.size / 5)
+            setPageCount(response.size / size)
             setData(transformedData)
         }
         setLoading(false)
@@ -51,7 +53,7 @@ export default function Karigar() {
         fetchData()
         // console.table(dataTransform(karigarData))
         // setData(dataTransform(karigarData))
-    }, [page])
+    }, [page,size])
 
 
     return loading === true ? <div style={{
@@ -63,11 +65,12 @@ export default function Karigar() {
         <div>
             <ContentHeader titleName={"Karigars"} buttonName={"Add Karigar"} submitData={() => {
                 localStorage.removeItem('update')
+                localStorage.removeItem('view')
                 navigate("/addkarigar")
             }} />
             <SearchFilter fetchData={fetchData} search={search} setSearch={setSearch} />
             <DataTable col={karigarCols} setData={setData} data={data} responseData={updatedData} url={"/karigar/delete"} navigate={navigate} path={"/addkarigar"} />
-            <Paginate pageCount={pageCount} setPage={setPage} />
+            <Paginate pageCount={pageCount} setPage={setPage} page={page} size={size} setSize={setSize}/>
         </div>
 
     )

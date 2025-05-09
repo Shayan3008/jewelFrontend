@@ -6,6 +6,8 @@ import Paginate from '../../components/common/Paginate/Paginate'
 import { downloadReport, makeRequest } from '../../utils/HelperUtils'
 import { useNavigate } from 'react-router'
 import { currencyCols } from './CurrencyCols'
+import SearchFilter from '../../components/common/SearchFilter/SearchFilter'
+import ModalComponent from '../../components/modal/ModalComponent'
 
 export default function CurrencySetup() {
     const navigate = useNavigate()
@@ -14,6 +16,11 @@ export default function CurrencySetup() {
     const [pageCount, setPageCount] = useState(0)
     const [page, setPage] = useState(0);
     const [loading, setLoading] = useState(false)
+    const [size, setSize] = useState(5)
+    const [modal, setModal] = useState(false)
+    const handleModal = () => {
+        setModal(e => !e);
+    }
     const dataTransform = (dataForTable) => {
         const tempData = []
         for (let i = 0; i < dataForTable.length; i++) {
@@ -26,23 +33,31 @@ export default function CurrencySetup() {
         //console.log("final Data")
         return tempData
     }
+    const [search, setSearch] = useState("")
+    const fetchData = async () => {
+        setLoading(true)
+        let data = `page=${page}&size=${size}`
+        if (search.length > 0)
+            data = data + `&search=currencyName=${search}`
+
+        const response = await makeRequest("GET", null, `/currency?${data}`)
+        if (response.statusCode === 200) {
+            setUpdatedData(response.body)
+            const transformedData = dataTransform(response.body)
+            setPageCount(response.size / 5)
+            setData(transformedData)
+        }
+        setLoading(false)
+    }
+
+
 
     useEffect(() => {
-        const fetchData = async () => {
-            setLoading(true)
-            const response = await makeRequest("GET", null, `/currency?page=${page}&size=5`)
-            if (response.statusCode === 200) {
-                setUpdatedData(response.body)
-                const transformedData = dataTransform(response.body)
-                setPageCount(response.size / 5)
-                setData(transformedData)
-            }
-            setLoading(false)
-        }
+
 
         fetchData()
 
-    }, [page])
+    }, [page, size])
 
     const generateReport = async () => {
         try {
@@ -71,7 +86,7 @@ export default function CurrencySetup() {
                 [
                     {
                         name: "Generate Report",
-                        method: generateReport,
+                        method: handleModal,
                         color: ""
                     },
                     {
@@ -84,8 +99,11 @@ export default function CurrencySetup() {
                     }
                 ]
             } />
+            <SearchFilter fetchData={fetchData} search={search} setSearch={setSearch} />
             <DataTable col={currencyCols} setData={setData} data={data} responseData={updatedData} url={"/currency/delete"} navigate={navigate} path={"/addcurrency"} />
-            <Paginate pageCount={pageCount} setPage={setPage} />
+            <Paginate page={page} size={size} setSize={setSize} pageCount={pageCount} setPage={setPage} />
+            <ModalComponent bodyText={"Want to generate currency report?"} handleModal={handleModal}
+                modal={modal} onSuccess={generateReport} />
         </div>
 
     )

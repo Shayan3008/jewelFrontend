@@ -15,7 +15,6 @@ export default function Navbar(props) {
                         <div style={{display:'flex'}}>
 
                             <button onClick={() => {
-                                console.log(props.goldRate)
                                 if(Number(props.goldRate) === 0){
                                     props.handleFailedModal()
                                     return;

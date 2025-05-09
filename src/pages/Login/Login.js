@@ -19,18 +19,17 @@ export default function Login(props) {
   const loginUser = async () => {
     try {
       setLoader(true)
-      // //console.log(formData)
       const response = await makeRequest("POST", formData, "/auth/login")
       //console.log(response)
       if (response.statusCode === 200) {
-        localStorage.setItem("token", 
+        localStorage.setItem("token",
           response.body.token
         );
-        localStorage.setItem("name",response.body.userName)
+        localStorage.setItem("name", response.body.userName)
       }
       setLoader(false)
       props.setShowNavBar(true)
-      navigate("/home")      
+      navigate("/home")
     } catch (error) {
       //console.log(getMessageFromAxiosError(error))
       setLoader(false)
@@ -41,8 +40,15 @@ export default function Login(props) {
     props.setShowNavBar(false)
   }, [props])
 
+  const handleOnKeyDown = (event) => {
+
+    if (event.key === 'Enter') {
+      loginUser()
+    }
+  }
+
   return (
-    <div className='mainPage'>
+    <div className='mainPage' onKeyDown={handleOnKeyDown}>
       <div className='loginForm'>
         <div style={{ height: "50%", width: "100%", textAlign: 'center', background: '#FFF5F5' }}>
 
@@ -51,18 +57,19 @@ export default function Login(props) {
         <div style={{ height: '20px' }}></div>
         <div>
 
-          <InputField labelName={"Email"} inputValue={formData.email} setInputValue={setFormData} name={"email"} />
+          <InputField labelName={"Email"} inputValue={formData.email} setInputValue={setFormData} name={"email"} onKeyDown={handleOnKeyDown} />
         </div>
         <div style={{ height: '10px' }}></div>
         <div>
 
-          <InputField labelName={"Password"} inputValue={formData.password} setInputValue={setFormData} name={"password"} />
+          <InputField labelName={"Password"} inputValue={formData.password} setInputValue={setFormData} name={"password"} onKeyDown={handleOnKeyDown} />
         </div>
 
         <div style={{ height: '5px' }}></div>
         <div style={{ width: '100%', textAlign: 'center' }}>
 
-          <Button variant="success" style={{ width: "50%", fontFamily: "Arvo", fontSize: '20px' }} onClick={loader ? null : loginUser}>
+          <Button variant="success" style={{ width: "50%", fontFamily: "Arvo", fontSize: '20px' }} onClick={loader ? null : loginUser}
+          >
             {loader ? <Spinner /> : "Login"}
           </Button>
         </div>

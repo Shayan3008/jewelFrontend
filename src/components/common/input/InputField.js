@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import './InputField.css'; // CSS file for styling (optional)
 import { handleInputChange } from '../../../utils/HelperUtils';
 
-const InputField = ({ labelName, value, type, inputValue, setInputValue, name, disable, validationText, validator, max }) => {
+const InputField = ({color ,labelName, value, type, inputValue, setInputValue, name, disable, validationText, validator, max }) => {
   const [focused, setFocused] = useState(false);
   useEffect(() => {
     if (value !== undefined || ((inputValue !== undefined) && (type !== 'text' || inputValue.length > 0)) || type === "date") {
@@ -29,7 +29,7 @@ const InputField = ({ labelName, value, type, inputValue, setInputValue, name, d
       <label className="input-label">{labelName}</label>
       <input
         className='styled_input'
-        style={{ border: validator ? '1px solid red' : '' }}
+        style={{ border: validator ? '1px solid red' : '', color:color==null ? 'grey' : color }}
         type={type == null ? 'text' : type}
         value={value == null ? inputValue  : value}
         onChange={(e) => {

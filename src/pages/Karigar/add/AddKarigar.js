@@ -53,15 +53,15 @@ export default function AddKarigar() {
             }
             //console.log(response)
             dispatch(showDialog(true, response.message, false))
-            alert(response.message)
-            navigate(-1)
+            // alert(response.message)
+            navigate("/karigar")
         } catch (error) {
             dispatch(showDialog(true, getMessageFromAxiosError(error), true))
         }
         setTimeout(() => {
-                dispatch(showDialog(false, "", false))
-                navigate(-1)
-            }, 3000);
+            dispatch(showDialog(false, "", false))
+            navigate(-1)
+        }, 3000);
     }
 
     const viewOrEdit = () => {
@@ -83,7 +83,7 @@ export default function AddKarigar() {
 
     return (
         <>
-            <ContentHeader isView={viewButton()} titleName={"Add Karigar"} buttonName={update ? "Update" : "Submit"} submitData={handleModal} />
+            <ContentHeader isView={viewButton()} titleName={`${update ? "Update" : "Add"} Karigar`} buttonName={update ? "Update" : "Submit"} submitData={handleModal} />
             <Form
                 title={"Karigar details"}
                 children={<>
@@ -96,7 +96,7 @@ export default function AddKarigar() {
                     <div style={{ height: "10px" }}></div>
                 </>}
             />
-            <ModalComponent modal={modal} handleModal={handleModal} onSuccess={submitData} bodyText={"Are you sure you want to add Karigar?"} />
+            <ModalComponent modal={modal} handleModal={handleModal} onSuccess={submitData} bodyText={`Are you sure you want to ${update ? "Update" : "dd"} Karigar?`} />
         </>
     )
 }

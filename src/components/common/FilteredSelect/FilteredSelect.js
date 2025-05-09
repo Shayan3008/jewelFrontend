@@ -2,7 +2,7 @@ import React from 'react'
 import Select from 'react-dropdown-select'
 
 export default function FilteredSelect({ option, placeholder, setFilters, name, disabled }) {
-    console.log(option)
+
     return (
 
         <Select disabled={disabled} className='input-container' style={{
@@ -35,7 +35,6 @@ export default function FilteredSelect({ option, placeholder, setFilters, name, 
             onChange={(values) => {
                 if (values.length === 0)
                     return
-                console.log(`${name}:${values[0].name}`)
                 setFilters(data => ({
                     ...data,
                     [name]: values[0].id

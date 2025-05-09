@@ -61,7 +61,7 @@ export default function AddVendorHeader() {
             let response;
 
             response = await makeRequest("POST", formData, "/vendor-header/save")
-            
+
             dispatch(showDialog(true, response.message, false))
         } catch (error) {
             console.log(error)
@@ -81,13 +81,13 @@ export default function AddVendorHeader() {
         viewOrEdit()
     }, [])
 
-    const generateReport = ()=>{
+    const generateReport = () => {
         console.log("Report Generated")
     }
 
     return (
         <>
-            <ContentHeader isView={viewButton()} multiOption={true} titleName={"Add Vendor Header"} buttonName={update ? "Update" : "Submit"} submitData={handleModal} multiName={viewButton() ?
+            <ContentHeader isView={viewButton()} multiOption={true} titleName={`${view ? "View" : update ? "Update" : "Add"} Vendor Header`} buttonName={update ? "Update" : "Submit"} submitData={handleModal} multiName={viewButton() ?
                 [
                     {
                         name: "Back",

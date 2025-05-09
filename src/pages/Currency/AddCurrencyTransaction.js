@@ -26,7 +26,8 @@ export default function AddCurrencyTransaction() {
         amount: false,
         exchangeRate: false,
         currencyCode: false,
-        qty: false
+        qty: false,
+        trnDate: false
     })
     const [formData, setFormData] = useState({
         id: "",
@@ -35,15 +36,20 @@ export default function AddCurrencyTransaction() {
         exchangeRate: 0.0,
         description: "",
         currencyId: "",
-        qty: 0
+        qty: 0,
+        trnDate: ""
     })
 
     const getTotalPresentAmountInCurrency = () => {
         if (formData.currencyId.length === 0) return "0"
         let currency = currencyList.filter(e => e.id === formData.currencyId)
         if (currency !== null && currency.length > 0 && currency[0].presentAmount !== null) {
-            console.log(currency)
-            return currency[0].presentAmount.toString()
+            if(formData.trnType.length === 0)
+                return currency[0].presentAmount.toString()
+            else if (formData.trnType === "DEBIT")
+                return (Number(currency[0].presentAmount) + Number(formData.qty)).toString()
+            else if (formData.trnType === "CREDIT")
+                return (Number(currency[0].presentAmount) - Number(formData.qty)).toString()
         }
         return "0"
     }
@@ -127,9 +133,9 @@ export default function AddCurrencyTransaction() {
             dispatch(showDialog(true, getMessageFromAxiosError(error), true))
         }
         setTimeout(() => {
-                dispatch(showDialog(false, "", false))
-                navigate(-1)
-            }, 3000);
+            dispatch(showDialog(false, "", false))
+            navigate(-1)
+        }, 3000);
 
     }
 
@@ -144,19 +150,22 @@ export default function AddCurrencyTransaction() {
                         <SelectComponent disabled={view || update} data={formData.currencyId} name={"currencyId"} option={currency} setFormData={setFormData} placeholder={"Enter Currency Code"}
                             validator={validator.currencyCode} validationText={"Please Enter Currency"} />
                         <SelectComponent disabled={view || update} data={formData.trnType} name={"trnType"} option={trnType} setFormData={setFormData} placeholder={"Enter Transaction Type"} validator={validator.trnType} validationText={"Please Enter transaction type"} />
-                        <InputField disable={view} labelName={"Description"} inputValue={formData.description} name={"description"} setInputValue={setFormData}
-                        />
+                        <InputField labelName={"Transaction Date"} type={"date"} inputValue={formData.trnDate} setInputValue={setFormData} name={"trnDate"} validator={validator.trnDate}
+                        validationText={"Transaction Date Cannot be empty"} />
 
                     </div>
                     <div style={{ height: "10px" }}></div>
                     <div style={{ display: 'flex' }}>
+                        <InputField disable={view} labelName={"Description"} inputValue={formData.description} name={"description"} setInputValue={setFormData}
+                        />
                         <InputField disable={view} labelName={"Qty"} inputValue={formData.qty} name={"qty"} setInputValue={setFormData} validator={validator.qty} validationText={"Qty should be greater than zero"} />
                         <InputField disable={view} labelName={"Exchange Rate"} inputValue={formData.exchangeRate} name={"exchangeRate"} setInputValue={setFormData} validator={validator.exchangeRate} validationText={"Exchange rate should be greater than 0"} />
-                        <InputField labelName={"Amount"} value={Number(formData.exchangeRate) * Number(formData.qty)} />
+
 
                     </div>
                     <div style={{ height: '10px' }}></div>
                     <div style={{ display: 'flex' }}>
+                        <InputField labelName={"Amount"} value={Number(formData.exchangeRate) * Number(formData.qty)} />
                         <InputField labelName={"Present Amount"} value={getTotalPresentAmountInCurrency()} />
                     </div>
                 </>}

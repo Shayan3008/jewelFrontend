@@ -17,10 +17,6 @@ export default function LedgerReport() {
         vendorId: ""
     })
 
-    const [validator, setValidator] = useState({
-        vendorId: false,
-        vendorHeaderId: false
-    })
 
     const fetchData = async () => {
         const request = await fetchAllVendorHeaders()
@@ -94,8 +90,8 @@ export default function LedgerReport() {
                 title={"Ledger Vendor Selection"}
                 children={<>
                     <div style={{ display: 'flex' }}>
-                        <SelectComponent data={formData.name} option={vendorHeader} name={"name"} setFormData={setFormData} placeholder={"Enter Vendor Header: "} validator={validator.vendorHeaderId} validationText={"Vendor Header Not selected"} />
-                        <SelectComponent data={formData.vendorId} option={vendor} name={"vendorId"} setFormData={setFormData} placeholder={"Enter Vendor : "} validator={validator.vendorId} validationText={"Vendor  Not selected"} />
+                        <SelectComponent data={formData.name} option={vendorHeader} name={"name"} setFormData={setFormData} placeholder={"Enter Vendor Header: "}  validationText={"Vendor Header Not selected"} />
+                        <SelectComponent data={formData.vendorId} option={vendor} name={"vendorId"} setFormData={setFormData} placeholder={"Enter Vendor : "}  validationText={"Vendor  Not selected"} />
                     </div>
                     <div style={{ height: "10px" }}></div>
                 </>}

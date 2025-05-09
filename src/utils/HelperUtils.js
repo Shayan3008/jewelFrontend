@@ -37,15 +37,14 @@ const navigateToPage = (navigate, path) => {
 }
 
 const makeRequest = async (method, body, url) => {
-    //console.log(headers)
+    
     const response = await axios({
         method: method,
         url: apiUrl + url,
         data: body,
         headers: headers
     })
-    console.log("Token Value:" + localStorage.getItem("token"))
-    // console.log(response)
+
     return response.data
 }
 
@@ -60,7 +59,7 @@ function checkIfAnyFalse(obj) {
 
 const goldRate = (purity, rate) => {
     if (purity === undefined)
-        return 0.0
+        return 0.00
     purity = Number(purity.slice(0, -1))
     return (Number(purity / 24) * rate).toFixed(2);
 }
@@ -69,6 +68,7 @@ const goldRate = (purity, rate) => {
 const getMessageFromAxiosError = (error) => error.response.data.message;
 
 const convertDateToCorrectFormat = (dated) => {
+    
     let arrayValue = dated.split("-")
     let date = ""
     for (let i = arrayValue.length - 1; i >= 0; i--) {
@@ -185,7 +185,6 @@ const handleImageChange = (e, setFormData) => {
         const reader = new FileReader();
         reader.onload = (event) => {
             if (reader.readyState === 2) {
-                //console.log(event.target.result)
                 setFormData((data) => ({
                     ...data,
                     itemImage: event.target.result.split(",")[1]

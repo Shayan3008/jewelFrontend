@@ -44,8 +44,6 @@ export default function AddCurrency() {
         try {
 
 
-
-            setModal(e => !e)
             let response;
             if (update === false) {
 

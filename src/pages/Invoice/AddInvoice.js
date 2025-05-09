@@ -4,7 +4,7 @@ import InputField from '../../components/common/input/InputField'
 import Form from '../../components/form/Form'
 import "react-datepicker/dist/react-datepicker.css";
 import Select from 'react-dropdown-select';
-import { downloadReport, getMessageFromAxiosError, goldRate, makeRequest, viewButton } from '../../utils/HelperUtils';
+import { downloadReport, getMessageFromAxiosError, goldRate, makeRequest, validateFields, viewButton } from '../../utils/HelperUtils';
 import ModalComponent from '../../components/modal/ModalComponent';
 import SelectComponent from '../../components/common/Select/SelectComponent';
 import { useNavigate } from 'react-router';
@@ -12,6 +12,7 @@ import InvoiceWithItem from './Components/InvoiceWithItem';
 import InvoiceWithoutItem from './Components/InvoiceWithoutItem';
 import { useDispatch, useSelector } from 'react-redux';
 import { showDialog } from '../../store/Actions/MessageDialogAction';
+import { Spinner } from 'react-bootstrap';
 
 export default function AddInvoice() {
 
@@ -21,7 +22,7 @@ export default function AddInvoice() {
     const dispatch = useDispatch()
     const [openGenerateModal, setGenerateModal] = useState(false)
     const [category, setCategory] = useState([])
-    const [categoryBody, setCategoryBody] = useState([])
+    const [load, setLoad] = useState(true)
     const [netWeight, setNetWeight] = useState(0);
     const [item, setItem] = useState({})
     const [itemOption, setItemOption] = useState([])
@@ -80,7 +81,8 @@ export default function AddInvoice() {
         } else {
             let netWeight = (Number(invoice.totalWeight) / ((Number(invoice.wastePer) / 100) + 1)).toFixed(2)
             let date = new Date(invoice.invoiceDate).toISOString().split("T")[0]
-            let goldRate = Number(Number(invoice.totalItemPrice) / Number(invoice.totalWeight)).toFixed(2)
+            let goldRate = invoice.goldRate
+            // console.log(invoice)
             setFormData({
                 id: invoice.id,
                 invoiceDate: date,
@@ -115,19 +117,27 @@ export default function AddInvoice() {
         }
     }
 
-    const getDesign = (categoryId) => {
-        const items = categoryBody.filter(e => e.categoryCode === categoryId)
-        if (items === null || items.length === 0)
-            return
-        const itemResponse = items[0].itemResponseDTOs
-        const data = []
-        for (const element of itemResponse) {
-            data.push({
-                id: element.id,
-                name: element.designNo
-            })
+    const validate = () => {
+
+        const data = { ...validator }
+        if (formData.invoiceDate.length === 0)
+            data.invoiceDate = true;
+        return data
+    }
+
+    const getDesign = async (categoryId) => {
+        setLoad(true)
+        const response = await makeRequest("GET", null, "/item/itemLov/" + categoryId)
+        if (response.statusCode === 200) {
+            const item = response.body.map(e => ({
+                id: e.id,
+                name: e.designNo
+            }))
+            setItemOption(item)
         }
-        setItemOption(data)
+
+        setLoad(false)
+
     }
 
     const getItem = async () => {
@@ -135,14 +145,13 @@ export default function AddInvoice() {
             if (itemOption.length > 0)
                 return;
 
-            const response = await makeRequest("GET", null, "/category")
+            const response = await makeRequest("GET", null, "/category/categoryLov")
             if (response.statusCode === 200) {
                 const category = response.body.map(e => ({
                     id: e.categoryCode,
                     name: e.categoryName
                 }))
                 setCategory(category)
-                setCategoryBody(response.body)
             }
         } catch (error) {
             getMessageFromAxiosError(error)
@@ -159,12 +168,22 @@ export default function AddInvoice() {
     }
 
     useEffect(() => {
+        setLoad(true)
         getItem()
         loadData()
+        setLoad(false)
     }, [])
 
 
     const handleModal = () => {
+
+        const data = validate()
+        if (data === null)
+            return;
+        const validated = validateFields(data, setValidator, validator)
+        if (validated === false)
+            return;
+
         setFormData(data => ({
             ...data,
             totalBill: getTotalBill(formData),
@@ -196,10 +215,6 @@ export default function AddInvoice() {
             }
 
             dispatch(showDialog(true, response.message, false))
-            if (response.statusCode === 200) {
-                // alert(response.message)
-                navigate("/invoice")
-            }
         } catch (error) {
             dispatch(showDialog(true, getMessageFromAxiosError(error), true))
         }
@@ -213,44 +228,59 @@ export default function AddInvoice() {
     function calculateTotalWeight() {
         // Means That invoice is already created and only needs to be seen.
         if (view === true) {
+            // Case for with item invoice
+            if (item !== null && Object.keys(item).length > 0) {
+                let itemWeight = (item.netWeight / item.totalQty) * formData.qty
+                let wastePer = (Number(formData.wastePer) / 100)
+                return Number((itemWeight * wastePer) + itemWeight).toString()
+            }
             return Number(formData.totalWeight).toString()
         }
 
         let wastePer = (Number(formData.wastePer) / 100)
         let totalWeight = 0
 
-        if (item.multiItem === true) {
-            totalWeight = (Number(item.netWeight) / Number(item.qty)) * Number(formData.qty)
+        if (item.qty > 1) {
+            totalWeight = (Number(item.netWeight) / Number(item.qty)) * Number(formData.qty).toFixed(2)
 
             return ((wastePer * totalWeight) + totalWeight).toFixed(2).toString();
         }
-        else if (item.multiItem === false || item.multiItem === null) {
+        else if (item.qty === 1) {
+            if (item.totalQty > 1) {
+                let weight = Number(item.netWeight) / Number(item.totalQty) * Number(item.qty).toFixed(2)
+                totalWeight = weight * wastePer + weight
+            } else {
+                totalWeight = (Number(item.netWeight) * wastePer + Number(item.netWeight)).toFixed(2)
+            }
 
-            totalWeight = (Number(item.netWeight) * wastePer + Number(item.netWeight))
-            return totalWeight.toFixed(2).toString()
+            return totalWeight.toString()
         }
         else if (Number(formData.qty) > Number(item.qty))
             return "Cannot be more than total number of items."
     }
     const getTotalItemPrice = (formData) => {
 
+        if (view === true)
+            return formData.totalItemPrice;
+
         if (Number(item.qty) > 1)
             return (Number(formData.goldRate) * Number(calculateTotalWeight())).toFixed(2)
         let wastePer = (Number(formData.wastePer) / 100)
         let totalWeight = 0
 
-        if (item !== null && Object.keys(item).length > 0) {
+        if (formData.itemId > 0 &&  item !== null && Object.keys(item).length > 0) {
 
-            totalWeight = (Number(item.netWeight) * wastePer + Number(item.netWeight))
-            return goldRate(item.karat, formData.goldRaterate) * totalWeight;
+            totalWeight = (Number(item.netWeight) * wastePer + Number(item.netWeight)).toFixed(2)
+            console.log("This is total Weight " + totalWeight)
+            return formData.goldRate * totalWeight;
         }
         else {
 
-            totalWeight = (Number(formData.netWeight) * wastePer + Number(formData.netWeight))
             if (view === true) {
                 return formData.totalItemPrice
             }
-            return (goldRate(formData.goldPurity, formData.goldRate) * totalWeight).toFixed(2);
+            totalWeight = (Number(formData.netWeight) * wastePer + Number(formData.netWeight)).toFixed(2)
+            return (formData.goldRate * totalWeight).toFixed(2);
         }
     }
 
@@ -276,7 +306,11 @@ export default function AddInvoice() {
         return (Number(formData.making) + Number(formData.beadAmount) + Number(formData.bigStoneAmount) + Number(formData.smallStoneAmount) + Number(formData.doliPolish) + Number(formData.diamondAmount) + Number(formData.chandiAmount) - Number(formData.discount) + Number(formData.diamondRate) + Number(getTotalItemPrice(formData))).toFixed(2);
     }
     try {
-        return (
+        return load === true ? <div style={{
+            margin: '10px',
+            textAlign: 'center'
+        }}>
+            <Spinner /></div> : (
 
             <>
                 <ContentHeader isView={viewButton()} multiOption={true} titleName={`${view ? 'View' : false ? 'Update' : 'Add'} Invoice`} buttonName={`${false ? 'Update' : 'Submit'}`} submitData={handleModal} multiName={viewButton() === true ?
@@ -319,7 +353,15 @@ export default function AddInvoice() {
                                 <input type='checkbox' style={{
                                     transform: 'scale(2)',
                                     accentColor: 'rgb(37, 180, 145)'
-                                }} value={!invoiceWithoutItem} disabled={view} onChange={() => setInvoiceWithoutItem(e => !e)} />
+                                }} value={!invoiceWithoutItem} disabled={view} onChange={() => {
+                                    if (invoiceWithoutItem === false)
+                                        setFormData(data => ({
+                                            ...data,
+                                            categoryCode: '',
+                                            itemId: ''
+                                        }));
+                                    setInvoiceWithoutItem(e => !e);
+                                }} />
                                 <div style={{ width: '20px' }}></div>
                                 <h5 style={{ margin: 0, padding: 0 }}>Sale Without Item</h5>
                             </div>
@@ -360,21 +402,26 @@ export default function AddInvoice() {
 
                                 }} placeholder='Select item'
                                     options={category}
+                                    searchable={true}
+                                    searchBy='name'
+                                    closeOnClickInput={true}
                                     labelField="name"
                                     valueField="id"
                                     values={category.length > 0 && formData.categoryCode ? [category.find(e => e.id === formData.categoryCode)] : []}
-                                    onChange={(values) => {
+                                    onChange={async (values) => {
                                         if (values !== undefined && values.length === 0) {
                                             setFormData(data => ({
                                                 ...data,
-                                                categoryCode: ''
+                                                categoryCode: '',
+                                                itemId: 0
                                             }));
                                         } else {
                                             setFormData(data => ({
                                                 ...data,
-                                                categoryCode: values[0].id
+                                                categoryCode: values[0].id,
+                                                itemId: ''
                                             }))
-                                            getDesign(values[0].id)
+                                            await getDesign(values[0].id)
                                         }
                                     }
                                     }

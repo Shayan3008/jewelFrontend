@@ -73,8 +73,9 @@ export default function AddCategory() {
         }
     }
     const fetchData = async () => {
+        if(option.length > 0) return;
         const metalType = await getMetalTypeLOVs();
-        if (metalType != null) {
+        if (metalType !== null) {
             setOption(metalType)
         }
     }
@@ -98,7 +99,7 @@ export default function AddCategory() {
         if (option.length === 0)
             fetchData()
 
-    }, [option.length])
+    }, [])
 
     const navigateBack = () => {
         navigate(-1)
@@ -121,7 +122,7 @@ export default function AddCategory() {
     return (
         <>
 
-            <ContentHeader multiOption={true} isView={viewButton()} titleName={`${view ? 'View' : 'Add'} Category`} buttonName={update ? "Update" : "Submit"} submitData={handleModal}
+            <ContentHeader multiOption={true} isView={viewButton()} titleName={`${view ? 'View' : update ? "Update" : 'Add'} Category`} buttonName={update ? "Update" : "Submit"} submitData={handleModal}
                 multiName={viewButton() ?
                     [
                         {

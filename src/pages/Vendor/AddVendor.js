@@ -22,7 +22,8 @@ export default function AddVendor() {
         id: "",
         vendorName: "",
         description: "",
-        vendorHeaderId: ""
+        vendorHeaderId: "",
+        cusCode: ""
     })
     const [validator, setValidator] = useState({
         vendorName: false,
@@ -37,7 +38,7 @@ export default function AddVendor() {
                 vendorName: vendorData.vendorName,
                 id: vendorData.id,
                 description: "This is vendor " + vendorData.vendorName,
-                vendorHeaderId:vendorData.vendorHeaderId
+                vendorHeaderId: vendorData.vendorHeaderId
             })
 
         }
@@ -145,13 +146,19 @@ export default function AddVendor() {
             <Form
                 title={"Vendor Details"}
                 children={
+                    <>
+                        <div style={{ display: 'flex' }}>
+                            <InputField disable={view} labelName={"Vendor Name"} inputValue={formData.vendorName} setInputValue={setFormData} name={"vendorName"} validationText={"Vendor name cannot be empty"} validator={validator.vendorName} />
+                            <InputField disable={view} labelName={"Vendor Description"} inputValue={formData.description} setInputValue={setFormData} name={"description"} />
+                            <SelectComponent disabled={view} data={formData.vendorHeaderId} name={"vendorHeaderId"} option={vendorHeader} setFormData={setFormData} placeholder={"Select Vendor Header:"}
+                                validator={validator.vendorHeaderId} validationText={"Vendor Header must be selected."} />
+                        </div>
+                        <div style={{ height: '10px' }}></div>
+                        <div style={{ display: 'flex' }}>
+                            <InputField disable={view} labelName={"Customer Code"} inputValue={formData.cusCode} setInputValue={setFormData} name={"cusCode"} />
+                        </div>
+                    </>
 
-                    <div style={{ display: 'flex' }}>
-                        <InputField disable={view} labelName={"Vendor Name"} inputValue={formData.vendorName} setInputValue={setFormData} name={"vendorName"} validationText={"Vendor name cannot be empty"} validator={validator.vendorName} />
-                        <InputField disable={view} labelName={"Vendor Description"} inputValue={formData.description} setInputValue={setFormData} name={"description"} />
-                        <SelectComponent disabled={view} data={formData.vendorHeaderId} name={"vendorHeaderId"} option={vendorHeader} setFormData={setFormData} placeholder={"Select Vendor Header:"}
-                            validator={validator.vendorHeaderId} validationText={"Vendor Header must be selected."} />
-                    </div>
                 }
             />
             <ModalComponent modal={modal} handleModal={handleModal} onSuccess={submitData} bodyText={"Are you sure you want to add Vendor?"} />

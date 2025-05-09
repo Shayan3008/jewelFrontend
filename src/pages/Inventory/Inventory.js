@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { getMessageFromAxiosError, handleImageChange, makeRequest, setAllMembersToFalse, validateFields, viewButton, viewOrEditHelper } from '../../utils/HelperUtils'
+import { getMessageFromAxiosError, handleImageChange, makeRequest,  validateFields, viewButton, viewOrEditHelper } from '../../utils/HelperUtils'
 import "../../components/common/CommonInput.css";
 import ContentHeader from '../../components/contentHeader/ContentHeader'
 import InputField from '../../components/common/input/InputField';
@@ -7,7 +7,7 @@ import Form from '../../components/form/Form';
 import ModalComponent from '../../components/modal/ModalComponent';
 import '../../components/common/input/InputField.css'
 import Select from 'react-dropdown-select';
-import { Modal, Spinner } from 'react-bootstrap';
+import {  Spinner } from 'react-bootstrap';
 import SelectComponent from '../../components/common/Select/SelectComponent';
 import { useNavigate } from 'react-router';
 import axios from 'axios';
@@ -16,9 +16,12 @@ import { goldPurity } from '../../constants/constantData';
 import { fetchKarigarLOV } from '../../common/dropdown/Karigar';
 import { useDispatch } from 'react-redux';
 import { showDialog } from '../../store/Actions/MessageDialogAction';
+import ImageModal from './ImageModal';
 export default function Inventory({ viewFromInvoice, itemId, setItem }) {
     let metalTypeArray = []
     const navigate = useNavigate()
+    const [imgModal,setImageModal] = useState(false)
+    
     const [update, setUpdate] = useState(false)
     const [view, setView] = useState(false)
     const [loadItem, setLoadItem] = useState(false)
@@ -65,8 +68,13 @@ export default function Inventory({ viewFromInvoice, itemId, setItem }) {
     const [category, setCategory] = useState([])
     const [numberArray, setNumberArray] = useState(Array.from({ length: 100 }, (_, index) => index + 1));
 
+    const handleImageModal = ()=>{
+        setImageModal(e=>!e)
+    }
+
 
     const fetchCategories = (metalName, metalTypeArray) => {
+
         let selectedMetalType = metalTypeArray.find(e => e.metalName === metalName)
         if (selectedMetalType === undefined)
             return;
@@ -106,6 +114,7 @@ export default function Inventory({ viewFromInvoice, itemId, setItem }) {
 
     const fetchData = async () => {
         try {
+            if(option.length > 0) return;
             const response = await makeRequest("GET", null, "/metalType");
             if (response.statusCode === 200) {
                 const metalOptions = response.body.map(element => ({
@@ -121,14 +130,14 @@ export default function Inventory({ viewFromInvoice, itemId, setItem }) {
         }
     };
     const fetchKarigar = async () => {
+        if(karigar.length > 0) return;
         const karigars = await fetchKarigarLOV()
-        console.log(karigars)
         if (karigars != null) {
             setKarigar(karigars)
         }
     };
     const loadFormData = async () => {
-
+        // setLoadItem(true) 
         await fetchData();
         await fetchKarigar();
         const numbers = numberArray.map(data => ({
@@ -137,8 +146,6 @@ export default function Inventory({ viewFromInvoice, itemId, setItem }) {
         }));
         setNumberArray(numbers);
         if (viewFromInvoice === true) {
-
-            setLoadItem(true)
             const response = await makeRequest("GET", null, `/item/${itemId}`)
             if (response.statusCode === 200) {
                 setFormData({
@@ -162,8 +169,7 @@ export default function Inventory({ viewFromInvoice, itemId, setItem }) {
                 setItem(response.body)
                 fetchCategories(response.body.metalName, metalTypeArray)
             }
-            setLoadItem(false)
-
+            // setLoadItem(false)
             return;
         }
 
@@ -172,35 +178,34 @@ export default function Inventory({ viewFromInvoice, itemId, setItem }) {
         if (inventoryData !== null && inventoryData !== undefined) {
             setFormData({
                 id: inventoryData.id,
-                qty: inventoryData.qty,
-                karat: inventoryData.karat,
-                designNo: inventoryData.designNo,
-                netWeight: inventoryData.netWeight,
-                grossWeight: inventoryData.grossWeight,
-                totalWeight: inventoryData.totalWeight,
+                qty: inventoryData.qty === null ? 1 : inventoryData.qty,
+                karat: inventoryData.karat === null ? "" : inventoryData.karat,
+                designNo: inventoryData.designNo === null ? "" : inventoryData.designNo,
+                netWeight: inventoryData.netWeight === null ? 0 : inventoryData.netWeight,
+                grossWeight: inventoryData.grossWeight === null ? 0 : inventoryData.grossWeight,
+                totalWeight: inventoryData.totalWeight === null ? 0 : inventoryData.totalWeight,
                 itemImage: inventoryData.itemImage,
                 karigarId: inventoryData.karigarId,
                 metalName: inventoryData.metalName,
                 categoryId: inventoryData.categoryId,
                 wastePercent: 0,
                 description: inventoryData.description,
-                beedsWeight: inventoryData.beedsWeight,
-                bigStoneWeight: inventoryData.bigStoneWeight,
-                smallStoneQty: inventoryData.smallStoneQty,
-                diamondQty: inventoryData.diamondQty,
-                diamondWeight: inventoryData.diamondWeight
+                beedsWeight: inventoryData.beedsWeight ===  null ? 0 : inventoryData.beedsWeight,
+                bigStoneWeight: inventoryData.bigStoneWeight === null ? 0 : inventoryData.bigStoneWeight,
+                smallStoneQty: inventoryData.smallStoneQty === null ? 0 : inventoryData.smallStoneQty,
+                diamondQty: inventoryData.diamondQty === null ? 0 : inventoryData.diamondQty,
+                diamondWeight: inventoryData.diamondWeight === null ? 0 : inventoryData.diamondWeight
             });
+            fetchCategories(inventoryData.metalName, metalTypeArray)
             setHasDiamonds(inventoryData.diamondQty !== 0)
             setUpdate(true);
         }
-
+        // setLoadItem(false)
     };
     useEffect(() => {
-
-
-
-
-        loadFormData();
+        setLoadItem(true)
+        loadFormData().then(e=>setLoadItem(false));
+        // setLoadItem(false)
 
     }, []);
 
@@ -247,8 +252,6 @@ export default function Inventory({ viewFromInvoice, itemId, setItem }) {
         }, 3000);
     }
 
-    console.table(formData)
-    console.table(karigar)
     try {
         return loadItem === true ? <div style={{
             margin: '10px',
@@ -259,7 +262,7 @@ export default function Inventory({ viewFromInvoice, itemId, setItem }) {
     
             <>
     
-                {viewFromInvoice ? null : <ContentHeader titleName={`${view ? 'view' : update ? 'Update' : 'Add'} Item`} buttonName={`${view ? 'View Report' : update ? 'Update' : 'Submit'}`} submitData={view ? fetchReport : handleModal} isView={viewButton()} />}
+                {viewFromInvoice ? null : <ContentHeader titleName={`${view ? 'View' : update ? 'Update' : 'Add'} Item`} buttonName={`${view ? 'View Report' : update ? 'Update' : 'Submit'}`} submitData={view ? fetchReport : handleModal} isView={viewButton()} />}
                 <div style={{ height: '10px' }}></div>
                 <Form
                     title={"item"}
@@ -366,7 +369,10 @@ export default function Inventory({ viewFromInvoice, itemId, setItem }) {
                     <div style={{ display: "flex" }}>
                         <div style={{ width: "180px", height: "180px" }}>
     
-                            {formData.itemImage ? <img src={`data:image/jpeg;base64,${formData.itemImage}`} alt="Preview" style={{ width: '100%', height: '100%' }} /> : <h5>
+                            {formData.itemImage ? <img onClick={()=>{
+                               if(view)
+                                handleImageModal() 
+                            }} src={`data:image/jpeg;base64,${formData.itemImage}`} alt="Preview" style={{ width: '100%', height: '100%',cursor:"pointer" }} /> : <h5>
                                 Image Preview</h5>}
                         </div>
                     </div>
@@ -375,6 +381,7 @@ export default function Inventory({ viewFromInvoice, itemId, setItem }) {
                 </div>
                 <div style={{ height: "10px" }}></div>
                 <ModalComponent modal={modal} handleModal={handleModal} onSuccess={submitData} bodyText={"Are you sure you want to add item?"} />
+                <ImageModal modal={imgModal} handleModal={handleImageModal} image={formData.itemImage}/>
             </>
         )
     } catch (error) {

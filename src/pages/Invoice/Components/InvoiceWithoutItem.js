@@ -7,13 +7,12 @@ import { goldRate } from '../../../utils/HelperUtils'
 
 export default function InvoiceWithoutItem({ view, formData, wastePer, setFormData, validator, getTotalBill, rate,saleWithoutPay }) {
 
-    console.log(formData)
+
     function calculateTotalWeight() {
         // Means That invoice is already created and only needs to be seen.
         if (view === true) {
             return formData.totalWeight
         }
-        console.log(Number(formData.netWeight))
         return (((Number(formData.wastePer) / 100) * Number(formData.netWeight)) + Number(formData.netWeight)).toFixed(2);
     }
 
@@ -43,9 +42,7 @@ export default function InvoiceWithoutItem({ view, formData, wastePer, setFormDa
                         </div>
                         <div style={{ height: '10px' }}></div>
                         <div style={{ display: 'flex' }}>
-                            <InputField disable={view} labelName={"Qty"} value={
-                                formData.qty
-                            } />
+                            <InputField disable={view} labelName={"Qty"}  inputValue={formData.qty} setInputValue={setFormData} name={"qty"} type={"number"} />
 
                             {view ? null : <div>
                                 <SelectComponent data={formData.goldPurity} name={"goldPurity"} option={goldPurity} setFormData={setFormData} placeholder={"Enter Gold Purity"} validator={validator.goldPurity} validationText={"Gold Purity must be selected."} />
@@ -95,7 +92,7 @@ export default function InvoiceWithoutItem({ view, formData, wastePer, setFormDa
 
                     <div style={{ display: 'flex' }}>
 
-                        <InputField disable={view} labelName={"final Bill"} value={getTotalBill(formData) * Number(formData.qty)} />
+                        <InputField disable={view} labelName={"final Bill"} value={getTotalBill(formData)} />
                     </div>
                     <div style={{ height: "10px" }}></div>
 

@@ -4,12 +4,12 @@ import Form from '../../../components/form/Form'
 import SelectComponent from '../../../components/common/Select/SelectComponent'
 import InputField from '../../../components/common/input/InputField'
 
-export default function InvoiceWithItem({ view, formData, wastePer, setFormData, validator, getTotalBill, item, setItem, getTotalItemPrice, calculateTotalWeight,saleWithoutPay }) {
+export default function InvoiceWithItem({ view, formData, wastePer, setFormData, validator, getTotalBill, item, setItem, getTotalItemPrice, calculateTotalWeight,saleWithoutPay,setLoad }) {
 
     try {
         return (
             <>
-                <Inventory viewFromInvoice={true} itemId={Number(formData.itemId)} setItem={setItem} />
+                <Inventory viewFromInvoice={true} setLoad={setLoad} itemId={Number(formData.itemId)} setItem={setItem} />
                 <Form
                     title={"Invoice Details"}
                     children={
@@ -27,7 +27,7 @@ export default function InvoiceWithItem({ view, formData, wastePer, setFormData,
                             <div style={{ height: '10px' }}></div>
                             <div style={{ display: 'flex' }}>
                                 <InputField disable={view} labelName={"Total Item Qty"} value={
-                                    item.qty
+                                    item.totalQty
                                 } />
                                 <InputField disable={view} labelName={"Total Weight"} value={
                                     `${calculateTotalWeight()} gms`
@@ -48,7 +48,7 @@ export default function InvoiceWithItem({ view, formData, wastePer, setFormData,
                     children={<>
 
                         <div style={{ display: 'flex' }}>
-                            {view ? <InputField disable={view} labelName={"Gold price per gm"} value={Number(formData.totalItemPrice) / calculateTotalWeight()} />
+                            {view ? <InputField disable={view} labelName={"Gold price per gm"} value={formData.goldRate === null ? 0 : formData.goldRate} />
                                 :
                                 <InputField disable={saleWithoutPay} labelName={"Gold price per gm"} inputValue={formData.goldRate} setInputValue={setFormData} name={"goldRate"} type={"number"} />
                             }
@@ -82,7 +82,7 @@ export default function InvoiceWithItem({ view, formData, wastePer, setFormData,
 
                         <div style={{ display: 'flex' }}>
                             {/* <InputField disable={view} labelName={"Qty"} inputValue={formData.qty} setInputValue={setFormData} name={"qty"} type={"number"} /> */}
-                            <InputField disable={view} labelName={"final Bill"} value={getTotalBill(formData) * Number(formData.qty)} />
+                            <InputField disable={view} labelName={"final Bill"} value={getTotalBill(formData)} />
                         </div>
                         <div style={{ height: "10px" }}></div>
 
@@ -96,13 +96,19 @@ export default function InvoiceWithItem({ view, formData, wastePer, setFormData,
 }
 function calculateItemWeight(item, view, formData) {
 
-    if (item.multiItem === true)
-        return <InputField disable={view} labelName={"Item Weight"}
-            value={Number(formData.qty) <= Number(item.qty) ? (Number(item.netWeight) / Number(item.qty)) * Number(formData.qty) : "Purchased qty cannot be greater than total no of items."} />
-
+    if(view === true){
+        let itemWeight = (item.netWeight / item.totalQty) * formData.qty 
+        return <InputField disable={view} labelName={"Item Weight"} value={itemWeight} />
+    }
     let wastePer = (Number(formData.wastePer) / 100)
+    let netWeight = (Number(item.netWeight) / Number(item.qty)) * Number(formData.qty) 
+    if (item.qty > 1)
+        return <InputField disable={view} labelName={"Item Weight"}
+            value={Number(formData.qty) <= Number(item.qty) ? netWeight : "Purchased qty cannot be greater than total no of items."} />
+
     let totalWeight = 0
     totalWeight = (Number(item.remainingNetWeight) * wastePer + Number(item.remainingNetWeight)).toFixed(2)
+    console.log(item)
     return <InputField disable={view} labelName={"Item Weight"} value={totalWeight} />
 
 }

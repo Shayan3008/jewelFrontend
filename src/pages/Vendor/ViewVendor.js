@@ -17,6 +17,7 @@ export default function ViewVendor() {
     const [page, setPage] = useState(0);
     const [loading, setLoading] = useState(false)
     const [search, setSearch] = useState("")
+    const [size,setSize] = useState(5)
     const dataTransform = (dataForTable) => {
         const tempData = []
         for (let i = 0; i < dataForTable.length; i++) {
@@ -35,16 +36,16 @@ export default function ViewVendor() {
             
             let data = ""
             if (search.length > 0) {
-                data = `page=${page}&size=5&search=name=${search}`
+                data = `page=${page}&size=${size}&search=name=${search}`
             }
             else {
-                data = `page=${page}&size=5`
+                data = `page=${page}&size=${size}`
             }
             const response = await makeRequest("GET", null, `/vendor?${data}`)
             if (response.statusCode === 200) {
                 setUpdatedData(response.body)
                 const transformedData = dataTransform(response.body)
-                setPageCount(response.size / 5)
+                setPageCount(response.size / size)
                 setData(transformedData)
             }
         } catch (error) {
@@ -57,7 +58,7 @@ export default function ViewVendor() {
         fetchData()
         // console.table(dataTransform(karigarData))
         // setData(dataTransform(karigarData))
-    }, [page])
+    }, [page,size])
 
 
     return loading === true ? <div style={{
@@ -73,7 +74,7 @@ export default function ViewVendor() {
             }} />
             <SearchFilter fetchData={fetchData} search={search} setSearch={setSearch} />
             <DataTable col={VendorCols} setData={setData} data={data} responseData={updatedData} url={"/vendor/delete"} navigate={navigate} path={"/addvendor"} />
-            <Paginate pageCount={pageCount} setPage={setPage} page={page}/>
+            <Paginate pageCount={pageCount} setPage={setPage} page={page} size={size} setSize={setSize}/>
         </div>
 
     )

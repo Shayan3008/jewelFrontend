@@ -10,8 +10,6 @@ import {
 import HomePage from './pages/HomePage/HomePage';
 import Sidebar from './components/sidebar/Sidebar';
 import AddCategory from './pages/Category/AddCategory/AddCategory';
-import AddSubCategory from './pages/Category/AddSubCategory/AddSubCategory';
-import ViewSubCategory from './pages/ViewSubCategory/ViewSubCategory';
 import Inventory from './pages/Inventory/Inventory';
 import Login from './pages/Login/Login';
 import Karigar from './pages/Karigar/view/Karigar';
@@ -38,6 +36,9 @@ import JournalVoucher from './pages/JournalVoucher/JournalVoucher';
 import VendorHeaderListing from './pages/VendorHeader/VendorHeaderListing';
 import AddVendorHeader from './pages/VendorHeader/AddVendorHeader';
 import LedgerReport from './pages/Reports/LedgerReport';
+import ViewMetalType from './pages/MetalType/view/ViewMetalType';
+import AddMetalType from './pages/MetalType/add/AddMetalType';
+import AddStartingBalanceForNewDate from './pages/CashBook/AddStartingBalanceForNewDate';
 
 
 function App() {
@@ -125,7 +126,7 @@ function App() {
       <div className={showNavBar ? 'main' : ''}>
         {showNavBar === true && < Sidebar setOpenSideBar={setOpenSideBar} openSideBar={openSideBar} />}
         <div className={showNavBar ? 'content' : ''}>
-          <div className={showNavBar ? 'insideContent bg-color' : ''}>
+          <div className={!showNavBar ? 'insideContent bg-color' : ''}>
             <Routes>
               <Route>
                 <Route
@@ -145,8 +146,8 @@ function App() {
               <Route path='/category' element={<HomePage />} />
               <Route path='/viewcategory' element={<ViewCategory />} />
               <Route path='/addcategory' element={<AddCategory />} />
-              <Route path='/subCategoryView' element={<ViewSubCategory />} />
-              <Route path='/addsubcategory' element={<AddSubCategory />} />
+
+
               <Route path='/addinventory' element={<Inventory viewFromInvoice={false} />} />
               <Route path='/karigar' element={<Karigar />} />
               <Route path='/addkarigar' element={<AddKarigar />} />
@@ -168,6 +169,9 @@ function App() {
               <Route path='/vendorheader' element={<VendorHeaderListing />} />
               <Route path='/savevendorheader' element={<AddVendorHeader />} />
               <Route path='/trialbalancereport' element={<LedgerReport />} />
+              <Route path='/metaltype' element={<ViewMetalType />} />
+              <Route path='/addmetaltype' element={<AddMetalType />} />
+              <Route path='/addopeningbalance' element={<AddStartingBalanceForNewDate />} />
             </Routes>
           </div>
         </div>

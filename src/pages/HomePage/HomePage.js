@@ -25,6 +25,7 @@ export default function HomePage() {
     const [search, setSearch] = useState("")
     const [modal, setModal] = useState(false)
 
+  const [size,setSize] = useState(5)
     const handleModal = () => {
         setModal(e => !e)
     }
@@ -47,13 +48,13 @@ export default function HomePage() {
         setLoading(true)
         let data = ""
         if (search.length > 0)
-            data = `page=${page}&size=5&search=${search}`
+            data = `page=${page}&size=${size}&search=${search}`
         else
-            data = `page=${page}&size=5`
+            data = `page=${page}&size=${size}`
         const response = await makeRequest("GET", null, `/category?${data}`)
         if (response.statusCode === 200) {
             setUpdatedData(response.body)
-            setPageCount(response.size / 5)
+            setPageCount(response.size / size)
             const transformedData = dataTransform(response.body)
             setData(transformedData)
         }
@@ -69,7 +70,7 @@ export default function HomePage() {
 
         fetchData()
         // eslint-disable-next-line
-    }, [page])
+    }, [page,size])
 
     const generateReport = async () => {
         try {
@@ -101,6 +102,7 @@ export default function HomePage() {
                         name: "Add Category",
                         method: () => {
                             localStorage.removeItem('update')
+                            localStorage.removeItem("view")
                             navigate("/addcategory")
                         },
                         color: 'red'
@@ -109,7 +111,7 @@ export default function HomePage() {
             } />
             <SearchFilter fetchData={fetchData} search={search} setSearch={setSearch} option={option} />
             <DataTable col={columns} data={data} responseData={updatedData} navigate={navigate} path={"/addcategory"} url={"/category/delete"} setData={setData} name={"categoryCode"} />
-            <Paginate setPage={setPage} pageCount={pageCount} page={page} />
+            <Paginate setPage={setPage} pageCount={pageCount} page={page} size={size} setSize={setSize} />
             <ModalComponent bodyText={"Want to generate detailed category report?"} handleModal={handleModal}
                 modal={modal} onSuccess={generateReport} />
         </div >

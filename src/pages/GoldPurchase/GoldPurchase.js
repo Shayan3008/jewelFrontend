@@ -8,8 +8,8 @@ import ContentHeader from '../../components/contentHeader/ContentHeader'
 import Form from '../../components/form/Form'
 import ModalComponent from '../../components/modal/ModalComponent'
 import { goldPurity, purchaseOption, trnType } from '../../constants/constantData'
-import { getMessageFromAxiosError, goldRate, makeRequest, validateFields } from '../../utils/HelperUtils'
 import { showDialog } from '../../store/Actions/MessageDialogAction'
+import { getMessageFromAxiosError, goldRate, makeRequest, validateFields } from '../../utils/HelperUtils'
 
 export default function GoldPurchase() {
 
@@ -45,12 +45,6 @@ export default function GoldPurchase() {
 
 
     const handleModal = () => {
-        if (formData.option === "Gold")
-            setFormData(e => ({
-                ...e,
-                amount: goldRate(formData.goldPurity, rate) * Number(formData.goldWeight).toFixed(2), goldRate: goldRate(formData.goldPurity, rate)
-            }))
-
         const data = validate()
         if (data === null)
             return;
@@ -63,18 +57,11 @@ export default function GoldPurchase() {
 
     const validate = () => {
 
-        if (rate === null || rate === undefined || Number(rate) === 0) {
-            dispatch(showDialog(true, "Modify Gold Rate!!!", true))
-            setTimeout(() => {
-                dispatch(showDialog(false, "", false))
-            }, 4000);
-            return null;
-        }
 
         const data = { ...validator }
         if (formData.purchaseDate.length === 0)
             data.purchaseDate = true;
-        if (formData.amount <= 0)
+        if (formData.amount < 0)
             data.amount = true;
         if (formData.option === "Gold") {
 
@@ -119,16 +106,29 @@ export default function GoldPurchase() {
             else {
                 // response = await makeRequest("PUT", formData, "/karigar/update")
             }
-            //console.log(response)
             dispatch(showDialog(true, response.message, false))
 
+            setFormData(e => ({
+                purchaseDate: "",
+                description: "",
+                trnType: "",
+                goldPurity: "",
+                goldRate: rate,
+                goldWeight: "",
+                amount: 0.0,
+                option: "",
+                vendorId: "",
+                totalStandingCash: 0,
+                totalStandingGold: 0
+            }))
 
         } catch (error) {
             dispatch(showDialog(true, getMessageFromAxiosError(error), true))
         }
+
         setTimeout(() => {
             dispatch(showDialog(false, "", false))
-            navigate(-1)
+
         }, 3000);
     }
     const [formData, setFormData] = useState({
@@ -140,7 +140,9 @@ export default function GoldPurchase() {
         goldWeight: "",
         amount: 0.0,
         option: "",
-        vendorId: ""
+        vendorId: "",
+        totalStandingCash: 0,
+        totalStandingGold: 0
     })
 
     const fetchData = async () => {
@@ -153,20 +155,67 @@ export default function GoldPurchase() {
             alert(getMessageFromAxiosError(error))
         }
     }
+
+    const callAndGetVendorCashAndGold = async () => {
+        const request = await makeRequest("GET", null, "/vendor/getVendorTotalStandingCashAndGold/" + formData.vendorId);
+        if (request.statusCode === 200) {
+            setFormData((e) => ({
+                ...e,
+                totalStandingCash: request.body.cash,
+                totalStandingGold: request.body.gold
+            }))
+        }
+    }
+
     useEffect(() => {
+
+
+        if (formData.vendorId > 0)
+            callAndGetVendorCashAndGold()
+
         if (vendor.length === 0)
             fetchData()
         setFormData(e => ({
             ...e,
             amount: goldRate(formData.goldPurity, rate) * Number(formData.goldWeight).toFixed(2)
         }))
-    }, [formData.goldPurity, formData.goldWeight])
+    }, [formData.goldPurity, formData.goldWeight, formData.vendorId])
+
+    const calculateTotalStandingCash = () => {
+        if (formData.amount <= 0)
+            return formData.totalStandingCash;
+        if (formData.option === "Cash") {
+            if (formData.trnType === "CREDIT") {
+                return Number(formData.totalStandingCash) - Number(formData.amount)
+            } else {
+                return Number(formData.totalStandingCash) + Number(formData.amount)
+            }
+        } else {
+            if (formData.trnType === "CREDIT") {
+                return Number(formData.totalStandingCash) + Number(formData.amount)
+            } else {
+                return Number(formData.totalStandingCash) - Number(formData.amount)
+            }
+        }
+    }
 
 
+    const calculateTotalStandingGold = () => {
+        if (formData.goldWeight <= 0)
+            return formData.totalStandingGold;
+        if (formData.option === "Gold") {
+            if (formData.trnType === "CREDIT") {
+                return formData.totalStandingGold - Number(formData.goldWeight)
+            } else {
+                return formData.totalStandingGold + Number(formData.goldWeight)
+            }
+        }
+        return formData.totalStandingGold
+    }
 
     return (
         <>
-            <ContentHeader titleName={`Purchase Voucher`} buttonName={`${false ? 'Update' : 'Submit'}`} submitData={handleModal} />
+            <ContentHeader titleName={`Ledger Voucher`} buttonName={`${false ? 'Update' : 'Submit'}`} submitData={handleModal} />
             <Form
                 title={"Transaction Details"}
                 children={<>
@@ -197,6 +246,12 @@ export default function GoldPurchase() {
 
                         </div>}
                     </>}
+                    <div style={{ height: "10px" }}></div>
+                    {formData.vendorId > 0 ? <div style={{ display: 'flex' }}>
+                        <InputField color={'green'} labelName={"Total Standing Cash"} value={calculateTotalStandingCash()} />
+                        <InputField labelName={"Total Standing Gold"} value={calculateTotalStandingGold()} />
+
+                    </div> : null}
                 </>}
             />
             <ModalComponent modal={modal} handleModal={handleModal} onSuccess={submitData} bodyText={"Are you sure you want to make transaction?"} />

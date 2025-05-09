@@ -16,6 +16,7 @@ export default function CurrencyPage() {
     const [page, setPage] = useState(0);
     const [loading, setLoading] = useState(false)
     const [search, setSearch] = useState("")
+    const [size,setSize] = useState(5)
     const dataTransform = (dataForTable) => {
         const tempData = []
         for (let i = 0; i < dataForTable.length; i++) {
@@ -34,7 +35,7 @@ export default function CurrencyPage() {
 
     const fetchData = async () => {
         setLoading(true)
-        let data = `page=${page}&size=5`
+        let data = `page=${page}&size=${size}`
         if (search.length > 0) {
             data = data + `&search=currency.currencyName=${search},trnType=${search}`
         }
@@ -42,7 +43,7 @@ export default function CurrencyPage() {
         if (response.statusCode === 200) {
             setUpdatedData(response.body)
             const transformedData = dataTransform(response.body)
-            setPageCount(response.size / 5)
+            setPageCount(response.size / size)
             setData(transformedData)
         }
         setLoading(false)
@@ -51,7 +52,7 @@ export default function CurrencyPage() {
 
         fetchData()
 
-    }, [page])
+    }, [page,size])
 
 
     return loading === true ? <div style={{
@@ -67,6 +68,7 @@ export default function CurrencyPage() {
                         name: "Add Currency Transaction",
                         method: () => {
                             localStorage.removeItem('update')
+                            localStorage.removeItem('view')
                             navigate("/addcurrencytransaction")
                         },
                         color: 'red'
@@ -75,7 +77,7 @@ export default function CurrencyPage() {
             } />
             <SearchFilter fetchData={fetchData} search={search} setSearch={setSearch} />
             <DataTable col={currencyTransactionCols} setData={setData} data={data} responseData={updatedData} url={"/currencytransaction/delete"} navigate={navigate} path={"/addcurrencytransaction"} />
-            <Paginate pageCount={pageCount} setPage={setPage} />
+        <Paginate page={page} pageCount={pageCount} setPage={setPage} setSize={setSize} size={size}/>
         </div>
     )
 }

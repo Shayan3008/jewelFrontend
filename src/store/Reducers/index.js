@@ -4,7 +4,6 @@ import { actionNamesDialog } from '../Actions/MessageDialogAction';
 
 const initialState = {
     goldRate: 0,
-
 };
 
 const inititalDialogState = {
@@ -14,7 +13,7 @@ const inititalDialogState = {
 }
 
 const goldRateReducer = (state = initialState, action) => {
-    // console.log(action)
+    
     switch (action.type) {
         case actionNames.changeInRate:
             return {
